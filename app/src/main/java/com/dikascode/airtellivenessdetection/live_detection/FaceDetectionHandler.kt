@@ -18,7 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-class FaceContourDetectionProcessor(private val view: OverlayCanvas) :
+class FaceDetectionHandler(private val view: OverlayCanvas) :
     AbstractImageAnalyzer<List<Face>>() {
 
     private val realTimeOpts = FaceDetectorOptions.Builder()
@@ -130,7 +130,6 @@ class FaceContourDetectionProcessor(private val view: OverlayCanvas) :
         val overlayCenterY = overlay.height / 2f
 
         // Define a tolerance range, within which the face is considered centralized
-        // This can be a percentage of the overlay's width and height
         val toleranceX = overlay.width * 0.4f //
         val toleranceY = overlay.height * 0.4f //
 

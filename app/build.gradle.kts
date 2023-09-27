@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt")
 }
 
 android {
@@ -55,6 +56,12 @@ dependencies {
     implementation ("androidx.camera:camera-lifecycle:1.4.0-alpha01")
     implementation ("androidx.camera:camera-view:1.4.0-alpha01")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
+
+
+    implementation ("com.google.dagger:hilt-android:2.42")
+    kapt ("com.google.dagger:hilt-compiler:2.42")
+    kapt ("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.2")
 
 
 }

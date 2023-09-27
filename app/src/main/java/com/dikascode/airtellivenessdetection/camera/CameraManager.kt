@@ -10,7 +10,7 @@ import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
-import com.dikascode.airtellivenessdetection.live_detection.FaceContourDetectionProcessor
+import com.dikascode.airtellivenessdetection.live_detection.FaceDetectionHandler
 import java.util.concurrent.Executors
 
 class CameraManager(
@@ -42,7 +42,7 @@ class CameraManager(
         val imageAnalyzer = ImageAnalysis.Builder()
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build()
-            .apply { setAnalyzer(cameraExecutor, FaceContourDetectionProcessor(overlayCanvas)) }
+            .apply { setAnalyzer(cameraExecutor, FaceDetectionHandler(overlayCanvas)) }
 
         cameraSelectorOption.value?.let { lensFacing ->
             val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()

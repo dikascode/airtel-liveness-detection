@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import android.widget.Toast
 import com.dikascode.airtellivenessdetection.camera.CameraManager
 import android.Manifest
+import com.dikascode.airtellivenessdetection.live_detection.FaceDetectionHandler
 
 class MainActivity : AppCompatActivity() {
 
@@ -69,8 +70,20 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        finish()
+        FaceDetectionHandler(binding.graphicOverlayFinder).stop()
     }
+
+    override fun onPause() {
+        super.onPause()
+        FaceDetectionHandler(binding.graphicOverlayFinder).stop()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        FaceDetectionHandler(binding.graphicOverlayFinder).stop()
+    }
+
+
 
     companion object {
         private const val TAG = "MainActivity"
