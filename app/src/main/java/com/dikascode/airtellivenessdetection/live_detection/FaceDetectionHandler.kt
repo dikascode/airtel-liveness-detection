@@ -37,6 +37,7 @@ class FaceDetectionHandler(
     private var toastRunnable: Runnable? = null
     private val handler = Handler(Looper.getMainLooper())
 
+    //Helps track if a face is valid to be captured or not
     private var faceIsValid = false
 
     override val overlayCanvas: OverlayCanvas

@@ -24,7 +24,6 @@ class OverlayCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         private set
 
     private var cameraSelector = CameraSelector.LENS_FACING_FRONT
-        private set
 
     abstract class Graphic(private val overlay: OverlayCanvas) {
         abstract fun draw(canvas: Canvas)

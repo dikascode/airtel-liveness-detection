@@ -17,7 +17,7 @@ class FaceOutlineGraphic(
     private val idPaint: Paint
     private val boxPaint: Paint
 
-    var color = Color.WHITE
+    var color = Color.GREEN
 
     init {
 
