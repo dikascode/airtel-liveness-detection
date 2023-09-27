@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
-        android:text="Switch Camera"
+        android:text="@string/switch_camera"
         app:layout_constraintBottom_toTopOf="@+id/btnCapture"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -45,7 +45,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginRight="5dp"
         android:enabled="false"
-        android:text="Capture"
+        android:text="@string/capture"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnSwitch" />
