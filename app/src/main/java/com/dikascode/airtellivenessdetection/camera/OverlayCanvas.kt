@@ -44,8 +44,8 @@ class OverlayCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             val offsetX = (overlay.width - ceil(adjustedWidth * scale)) / 2.0f
             val offsetY = (overlay.height - ceil(adjustedHeight * scale)) / 2.0f
 
-            overlay.offsetX = offsetX.toFloat()
-            overlay.offsetY = offsetY.toFloat()
+            overlay.offsetX = offsetX
+            overlay.offsetY = offsetY
 
             val mappedBox = RectF().apply {
                 left = boundingBoxT.right * scale + offsetX

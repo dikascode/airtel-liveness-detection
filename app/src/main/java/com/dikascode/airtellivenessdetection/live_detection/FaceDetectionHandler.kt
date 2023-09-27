@@ -18,7 +18,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-class FaceDetectionHandler(private val view: OverlayCanvas) :
+class FaceDetectionHandler(
+    private val view: OverlayCanvas,
+    private val callback: FaceDetectionCallback
+) :
     AbstractImageAnalyzer<List<Face>>() {
 
     private val realTimeOpts = FaceDetectorOptions.Builder()
@@ -33,6 +36,8 @@ class FaceDetectionHandler(private val view: OverlayCanvas) :
     private var isToastScheduled = false
     private var toastRunnable: Runnable? = null
     private val handler = Handler(Looper.getMainLooper())
+
+    private var faceIsValid = false
 
     override val overlayCanvas: OverlayCanvas
         get() = view
@@ -59,13 +64,16 @@ class FaceDetectionHandler(private val view: OverlayCanvas) :
             // Clear previous graphics
             overlayCanvas.clear()
 
+            faceIsValid = true
+
             // Check if results list is empty
             if (results.isEmpty()) {
                 scheduleToast(overlayCanvas, "No face detected")
+                faceIsValid = false
+
                 return@launch
             }
 
-            // Check for the number of faces detected
             if (results.size > 1) {
                 scheduleToast(overlayCanvas, "Only one face is allowed")
                 results.forEach { face ->
@@ -74,14 +82,20 @@ class FaceDetectionHandler(private val view: OverlayCanvas) :
                     }
                     overlayCanvas.add(faceGraphic)
                 }
+
+                faceIsValid = false
+
             } else {
                 val face = results.first()
                 val faceGraphic = FaceOutlineGraphic(overlayCanvas, face, rect)
+
+                faceIsValid = true
 
                 face.smilingProbability?.let {
                     if (it > SMILE_THRESHOLD) {
                         scheduleToast(overlayCanvas, "Please do not smile")
                         faceGraphic.color = Color.RED
+                        faceIsValid = false
                     }
                 }
 
@@ -89,17 +103,22 @@ class FaceDetectionHandler(private val view: OverlayCanvas) :
                     face.rightEyeOpenProbability?.let { it < BLINK_THRESHOLD } == true) {
                     scheduleToast(overlayCanvas, "Please do not blink.")
                     faceGraphic.color = Color.RED
+                    faceIsValid = false
                 }
 
                 // Check if the face is not centralized
                 if (!isFaceCentralized(face, overlayCanvas)) {
                     faceGraphic.color = Color.RED
+                    faceIsValid = false
                 }
 
                 // Add the graphic overlay
                 overlayCanvas.add(faceGraphic)
             }
         }
+
+        // Notify callback about face state change
+        callback.onFaceStateChanged(faceIsValid)
 
         // Invalidate the overlay to redraw
         overlayCanvas.postInvalidate()
@@ -155,4 +174,8 @@ class FaceDetectionHandler(private val view: OverlayCanvas) :
         private const val BLINK_THRESHOLD = 0.5f
     }
 
+}
+
+interface FaceDetectionCallback {
+    fun onFaceStateChanged(isValid: Boolean)
 }
