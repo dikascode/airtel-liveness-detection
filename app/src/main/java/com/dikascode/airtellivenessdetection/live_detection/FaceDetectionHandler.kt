@@ -29,8 +29,9 @@ class FaceContourDetectionProcessor(private val view: OverlayCanvas) :
 
     private val detector = FaceDetection.getClient(realTimeOpts)
 
-    private val debounceTime = 1000 // 1 second
+    private val debounceTime = 1500 // 1.5 second
     private var isToastScheduled = false
+    private var toastRunnable: Runnable? = null
     private val handler = Handler(Looper.getMainLooper())
 
     override val overlayCanvas: OverlayCanvas
@@ -43,6 +44,7 @@ class FaceContourDetectionProcessor(private val view: OverlayCanvas) :
     override fun stop() {
         try {
             detector.close()
+            toastRunnable?.let { handler.removeCallbacks(it) }
         } catch (e: IOException) {
             Log.e(TAG, "Exception thrown while trying to close Face Detector: $e")
         }
@@ -107,13 +109,13 @@ class FaceContourDetectionProcessor(private val view: OverlayCanvas) :
     private fun scheduleToast(overlayCanvas: OverlayCanvas, message: String) {
         if (!isToastScheduled) {
             isToastScheduled = true
-            handler.postDelayed({
+            toastRunnable = Runnable {
                 Toast.makeText(overlayCanvas.context, message, Toast.LENGTH_SHORT).show()
                 isToastScheduled = false
-            }, debounceTime.toLong())
+            }
+            handler.postDelayed(toastRunnable!!, debounceTime.toLong())
         }
     }
-
 
     //Wasn't really successful with this
     private fun isFaceCentralized(face: Face, overlay: OverlayCanvas): Boolean {
