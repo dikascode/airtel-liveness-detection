@@ -52,10 +52,14 @@ class CameraManager(
             {
                 cameraProvider = cameraProviderFuture.get()
 
-                if(allPermissionsGranted(context)) {
+                if (allPermissionsGranted(context)) {
                     startCamera(context)
-                }else {
-                    ActivityCompat.requestPermissions(Activity(), REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+                } else {
+                    ActivityCompat.requestPermissions(
+                        Activity(),
+                        REQUIRED_PERMISSIONS,
+                        REQUEST_CODE_PERMISSIONS
+                    )
                 }
             },
             ContextCompat.getMainExecutor(context)
@@ -72,14 +76,24 @@ class CameraManager(
             {
                 cameraProvider = cameraProviderFuture.get()
                 val preview = Preview.Builder().build()
+
+                //initializing image capture
+                imageCapture = ImageCapture.Builder().build()
+
                 val imageAnalyzer = ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
-                    .apply { setAnalyzer(cameraExecutor, FaceDetectionHandler(overlayCanvas, faceDetectionCallback)) }
+                    .apply {
+                        setAnalyzer(
+                            cameraExecutor,
+                            FaceDetectionHandler(overlayCanvas, faceDetectionCallback)
+                        )
+                    }
 
                 cameraSelectorOption.value?.let { lensFacing ->
-                    val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
-                    bindCameraUseCases(preview, imageAnalyzer, cameraSelector)
+                    val cameraSelector =
+                        CameraSelector.Builder().requireLensFacing(lensFacing).build()
+                    bindCameraUseCases(preview, imageCapture!!, imageAnalyzer, cameraSelector)
                 }
             },
             ContextCompat.getMainExecutor(context)
@@ -88,6 +102,7 @@ class CameraManager(
 
     private fun bindCameraUseCases(
         preview: Preview,
+        imageCapture: ImageCapture,
         imageAnalyzer: ImageAnalysis,
         cameraSelector: CameraSelector
     ) {
@@ -97,6 +112,7 @@ class CameraManager(
                 lifecycleOwner,
                 cameraSelector,
                 preview,
+                imageCapture,
                 imageAnalyzer
             )
             preview.setSurfaceProvider(finderView.surfaceProvider)
@@ -117,6 +133,7 @@ class CameraManager(
     }
 
     fun captureImage(context: Context, callback: (Bitmap) -> Unit) {
+
         val imageCapture = imageCapture ?: return
 
         // Creating a temporary file to store the captured image
@@ -146,7 +163,10 @@ class CameraManager(
                         put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
                     }
 
-                    val externalUri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                    val externalUri = context.contentResolver.insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        contentValues
+                    )
 
                     externalUri?.let {
                         context.contentResolver.openOutputStream(it).use { outputStream ->
