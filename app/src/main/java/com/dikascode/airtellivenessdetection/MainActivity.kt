@@ -60,7 +60,11 @@ class MainActivity : AppCompatActivity(), FaceDetectionCallback {
         }
 
         binding.btnCapture.setOnClickListener {
-            captureImage()
+            if (binding.btnCapture.text == getString(R.string.capture)) {
+                captureImage()
+            } else {
+                detectFaces()
+            }
         }
     }
 
@@ -75,6 +79,7 @@ class MainActivity : AppCompatActivity(), FaceDetectionCallback {
                 if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                     cameraManager.startCamera(this)
                 } else {
+                    Log.e(TAG, "Permissions: ${permissions.contentToString()}, Results: ${grantResults.contentToString()}")
                     Toast.makeText(this, "Permissions not granted by the user.", Toast.LENGTH_SHORT)
                         .show()
                     finish()
@@ -102,6 +107,11 @@ class MainActivity : AppCompatActivity(), FaceDetectionCallback {
             runOnUiThread {
                 binding.imagePreview.setImageBitmap(bitmap)
                 binding.imagePreview.visibility = View.VISIBLE
+                binding.graphicOverlayFinder.visibility = View.GONE
+                binding.previewViewFinder.visibility = View.GONE
+                binding.btnSwitch.isEnabled = false
+                binding.btnCapture.text = getString(R.string.detect_faces)
+                faceDetectionHandler.stop()
                 saveImageToStorage(bitmap)
             }
         }
@@ -141,12 +151,29 @@ class MainActivity : AppCompatActivity(), FaceDetectionCallback {
     companion object {
         private const val TAG = "MainActivity"
         private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
     }
 
+    private fun detectFaces() {
+        binding.imagePreview.visibility = View.GONE
+        binding.graphicOverlayFinder.visibility = View.VISIBLE
+        binding.previewViewFinder.visibility = View.VISIBLE
+        binding.imagePreview.visibility = View.GONE
+        binding.btnSwitch.isEnabled = true
+        binding.btnCapture.text = getString(R.string.capture)
+    }
+
     override fun onFaceStateChanged(isValid: Boolean) {
-        binding.btnCapture.isEnabled = isValid
+        if(binding.imagePreview.visibility == View.GONE)
+            binding.btnCapture.isEnabled = isValid
+        else{
+            binding.btnCapture.isEnabled = true
+            if (!isValid && !faceDetectionHandler.isStopped) {
+                faceDetectionHandler.stop()
+            }
+        }
+
     }
 }
 

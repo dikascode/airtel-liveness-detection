@@ -45,4 +45,5 @@
     </string>
     <string name="capture">Capture</string>
     <string name="switch_camera">Switch Camera</string>
+    <string name="detect_faces">Detect Faces</string>
 </resources>

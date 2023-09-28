@@ -2,8 +2,6 @@ package com.dikascode.airtellivenessdetection.live_detection
 
 import android.graphics.Color
 import android.graphics.Rect
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import com.dikascode.airtellivenessdetection.camera.AbstractImageAnalyzer
@@ -15,6 +13,8 @@ import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -30,16 +30,19 @@ class FaceDetectionHandler(
         .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
         .build()
 
-    private val detector = FaceDetection.getClient(realTimeOpts)
+    private var detector = FaceDetection.getClient(realTimeOpts)
 
     private val debounceTime = 200 // 2 second
-    private var isToastScheduled = false
-    private var toastRunnable: Runnable? = null
-    private val handler = Handler(Looper.getMainLooper())
+    private var currentToast: Toast? = null
 
     private var lastToastMessage: String? = null
     private var toastCount = 0
     private val maxToastCount = 2
+
+    var isStopped = false
+        private set
+
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     //Helps track if a face is valid to be captured or not
     private var faceIsValid = false
@@ -51,12 +54,26 @@ class FaceDetectionHandler(
         return detector.process(image)
     }
 
+//    fun start() {
+//        detector = FaceDetection.getClient(realTimeOpts)
+//    }
+
     override fun stop() {
-        try {
-            detector.close()
-            toastRunnable?.let { handler.removeCallbacks(it) }
-        } catch (e: IOException) {
-            Log.e(TAG, "Exception thrown while trying to close Face Detector: $e")
+        if (!isStopped) {
+            isStopped = true
+            callback.onFaceStateChanged(false)
+            try {
+                detector.close()
+
+                // Cancel all coroutines to avoid leaks
+                coroutineScope.cancel()
+
+                // Cancel any currently showing Toast
+                currentToast?.cancel()
+
+            } catch (e: IOException) {
+                Log.e(TAG, "Exception thrown while trying to close Face Detector: $e")
+            }
         }
     }
 
@@ -136,14 +153,17 @@ class FaceDetectionHandler(
             toastCount = 0
         }
 
-        if (!isToastScheduled && toastCount < maxToastCount) {
-            isToastScheduled = true
+        if (toastCount < maxToastCount) {
             toastCount++
-            toastRunnable = Runnable {
-                Toast.makeText(overlayCanvas.context, message, Toast.LENGTH_SHORT).show()
-                isToastScheduled = false
+
+            coroutineScope.launch {
+                // Show the Toast immediately
+                currentToast = Toast.makeText(overlayCanvas.context, message, Toast.LENGTH_SHORT)
+                currentToast?.show()
+
+                // Delay for debounceTime to prevent showing the next Toast immediately
+                delay(debounceTime.toLong())
             }
-            handler.postDelayed(toastRunnable!!, debounceTime.toLong())
         }
     }
 

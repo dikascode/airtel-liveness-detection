@@ -45,6 +45,7 @@ class CameraManager(
     private val cameraSelectorOption = MutableLiveData(CameraSelector.LENS_FACING_FRONT)
 
     private var imageCapture: ImageCapture? = null
+    private lateinit var imageAnalyzer: ImageAnalysis
 
     init {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -80,7 +81,7 @@ class CameraManager(
                 //initializing image capture
                 imageCapture = ImageCapture.Builder().build()
 
-                val imageAnalyzer = ImageAnalysis.Builder()
+                imageAnalyzer = ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
                     .apply {
