@@ -32,10 +32,14 @@ class FaceDetectionHandler(
 
     private val detector = FaceDetection.getClient(realTimeOpts)
 
-    private val debounceTime = 1500 // 1.5 second
+    private val debounceTime = 200 // 2 second
     private var isToastScheduled = false
     private var toastRunnable: Runnable? = null
     private val handler = Handler(Looper.getMainLooper())
+
+    private var lastToastMessage: String? = null
+    private var toastCount = 0
+    private val maxToastCount = 2
 
     //Helps track if a face is valid to be captured or not
     private var faceIsValid = false
@@ -127,8 +131,14 @@ class FaceDetectionHandler(
 
 
     private fun scheduleToast(overlayCanvas: OverlayCanvas, message: String) {
-        if (!isToastScheduled) {
+        if (lastToastMessage != message) {
+            lastToastMessage = message
+            toastCount = 0
+        }
+
+        if (!isToastScheduled && toastCount < maxToastCount) {
             isToastScheduled = true
+            toastCount++
             toastRunnable = Runnable {
                 Toast.makeText(overlayCanvas.context, message, Toast.LENGTH_SHORT).show()
                 isToastScheduled = false
